@@ -1,0 +1,34 @@
+services:
+
+
+  app:
+    build: .
+    tty: true
+    ports:
+      - "12370:12371"
+    command: sh -c "poetry run alembic upgrade head && poetry run uvicorn src.main:app --host 0.0.0.0 --port 12371 --reload"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+
+  db:
+    image: postgres:17-alpine
+    restart: on-failure
+    env_file:
+      - .env
+    expose:
+      - 5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+volumes:
+  db-data:
