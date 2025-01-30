@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, UploadFile, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import db_helper
 from src.mailing.crud import NotificationCRUD
 from src.mailing.schemas import NotificationCreate, NotificationIn
-from src.mailing.services import send_telegram, send_mail
+from src.tasks import send_email_task, send_telegram_task
 
 router = APIRouter(
     prefix="/api",
@@ -20,13 +20,20 @@ router = APIRouter(
 async def create_notification(
         notification_in: NotificationIn,
         db_session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-        background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
+    if not isinstance(notification_in.recipient, list):
+        list_of_recipients = [notification_in.recipient]
+    else:
+        list_of_recipients = notification_in.recipient
+
+    if notification_in.delay == 1:
+        delay_in_sending = 60 * 60
+    elif notification_in.delay == 2:
+        delay_in_sending = 24 * 60 * 60
+    else:
+        delay_in_sending = 0
+
     try:
-        if not isinstance(notification_in.recipient, list):
-            list_of_recipients = [notification_in.recipient]
-        else:
-            list_of_recipients = notification_in.recipient
         for recipient in list_of_recipients:
             notification_data = NotificationCreate(
                 message=notification_in.message,
@@ -35,9 +42,9 @@ async def create_notification(
             )
             notification = await NotificationCRUD.add(db_session=db_session, data=notification_data)
             if notification.recipient.isdigit():
-                await send_telegram(notification=notification, background_tasks=background_tasks)
+                result = send_telegram_task.apply_async(args=(notification.message, notification.recipient,), countdown=delay_in_sending)
             else:
-                await send_mail(notification=notification, background_tasks=background_tasks)
+                result = send_email_task.apply_async(args=(notification.message, notification.recipient,), countdown=delay_in_sending)
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Не удалось отправить уведомление"

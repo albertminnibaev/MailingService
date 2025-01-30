@@ -1,5 +1,6 @@
-services:
+version: '3'
 
+services:
 
   app:
     build: .
@@ -29,6 +30,26 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  celery-worker:
+    container_name: celery-worker
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+    entrypoint: celery -A src.project_celery worker -l info
+    env_file:
+      - .env
+    healthcheck:
+        test: sh -c 'celery -A your_celery_module:celery_app inspect ping'
+    depends_on:
+      - redis
 
 volumes:
   db-data:

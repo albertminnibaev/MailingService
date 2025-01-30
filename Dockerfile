@@ -8,4 +8,9 @@ ENV PYTHONPATH="/app"
 
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry install
+RUN python -m pip install --no-cache-dir poetry==0.1.0 \
+    && poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi \
+    && rm -rf $(poetry config cache-dir)/{cache,artifacts}
+
+COPY . .

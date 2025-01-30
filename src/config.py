@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).parent.parent
 
 
-class Settings(BaseSettings):
+class DatabaseSettings(BaseSettings):
     load_dotenv()
     db_name: str = os.getenv('POSTGRES_DB')
     db_user: str = os.getenv('POSTGRES_USER')
@@ -16,8 +16,10 @@ class Settings(BaseSettings):
     db_port: int = os.getenv('POSTGRES_PORT')
     db_url: str = f'postgresql+asyncpg://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
     db_echo: bool = os.getenv('DB_ECHO', False) == 'True'
-    # SECRET_KEY: str = os.getenv('SECRET_KEY')
     BASE_DIR: Path = Path(__file__).parent.parent
+
+
+class MailSettings(BaseSettings):
     MAIL_USERNAME: str = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD: str = os.getenv('MAIL_PASSWORD')
     MAIL_FROM: str = os.getenv('MAIL_FROM')
@@ -28,8 +30,23 @@ class Settings(BaseSettings):
     MAIL_SSL_TLS: bool = os.getenv('MAIL_SSL_TLS')
     USE_CREDENTIALS: bool = os.getenv('USE_CREDENTIALS')
     VALIDATE_CERTS: bool = os.getenv('VALIDATE_CERTS')
+
+
+class TelegrammSettings(BaseSettings):
     TELEGRAMM_KEY: str = os.getenv('TELEGRAMM_KEY')
-    # log_dir: Path = BASE_DIR / 'logs'
 
 
-settings = Settings()
+class RedisSetting(BaseSettings):
+    REDIS_HOST: str = os.getenv('REDIS_HOST')
+    REDIS_PORT: int = os.getenv('REDIS_PORT')
+
+
+class LoggingSettings(BaseSettings):
+    log_dir: Path = BASE_DIR / 'logs'
+
+
+database_settings = DatabaseSettings()
+mail_settings = MailSettings()
+telegramm_settings = TelegrammSettings()
+redis_settings = RedisSetting()
+logging_settings = LoggingSettings()

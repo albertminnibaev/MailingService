@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from src.config import settings
-# from src.includes.logging import register_errors
+from src.config import database_settings
+from src.includes.logging import register_errors
 from src.mailing.router import router as mailing_router
 
 
@@ -12,8 +12,8 @@ app = FastAPI(
 )
 
 
-app.mount('/static', StaticFiles(directory=(settings.BASE_DIR / 'static')), name='static')
+app.mount('/static', StaticFiles(directory=(database_settings.BASE_DIR / 'static')), name='static')
 
-# register_errors(app)
+register_errors(app)
 
 app.include_router(mailing_router)

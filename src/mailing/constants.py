@@ -1,10 +1,4 @@
-from enum import StrEnum, IntEnum, Enum
-
-
-# class DelayType(StrEnum):
-#     # 1 = 0
-#     '1111122e' = '1'
-#     '2' = '2'
+from enum import StrEnum
 
 
 class SendingStatus(StrEnum):

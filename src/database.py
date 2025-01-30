@@ -3,7 +3,7 @@ from asyncio import current_task
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, \
     AsyncSession, async_scoped_session
 
-from src.config import settings
+from src.config import database_settings
 
 
 class DatabaseHelper:
@@ -29,6 +29,6 @@ class DatabaseHelper:
 
 
 db_helper = DatabaseHelper(
-    settings.db_url,
-    echo=settings.db_echo,
+    database_settings.db_url,
+    echo=database_settings.db_echo,
 )
