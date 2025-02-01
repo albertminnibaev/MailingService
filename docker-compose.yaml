@@ -51,5 +51,21 @@ services:
     depends_on:
       - redis
 
+  celery-beat:
+    container_name: celery-beat
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+    entrypoint: celery -A src.project_celery beat -l info -s /app/src/celerybeat-schedule
+    env_file:
+      - .env
+    healthcheck:
+        test: sh -c 'celery -A your_celery_module:celery_app inspect ping'
+    depends_on:
+      - redis
+      - celery-worker
+
 volumes:
   db-data:

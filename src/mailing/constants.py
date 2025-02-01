@@ -2,5 +2,8 @@ from enum import StrEnum
 
 
 class SendingStatus(StrEnum):
+    PENDING = 'PENDING'
+    STARTED = 'STARTED'
     SUCCESS = 'SUCCESS'
-    FAILED = 'FAILED'
+    RETRY = 'RETRY'
+    FAILURE = 'FAILURE'

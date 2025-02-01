@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import db_helper
 from src.mailing.crud import NotificationCRUD
 from src.mailing.schemas import NotificationCreate, NotificationIn
+from src.mailing.services import update_notifications
 from src.tasks import send_email_task, send_telegram_task
 
 router = APIRouter(
@@ -43,8 +44,10 @@ async def create_notification(
             notification = await NotificationCRUD.add(db_session=db_session, data=notification_data)
             if notification.recipient.isdigit():
                 result = send_telegram_task.apply_async(args=(notification.message, notification.recipient,), countdown=delay_in_sending)
+                await update_notifications(db_session=db_session, notification=notification, result=result)
             else:
                 result = send_email_task.apply_async(args=(notification.message, notification.recipient,), countdown=delay_in_sending)
+                await update_notifications(db_session=db_session, notification=notification, result=result)
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Не удалось отправить уведомление"

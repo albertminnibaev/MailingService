@@ -25,7 +25,8 @@ def upgrade() -> None:
     sa.Column('message', sa.String(), nullable=False),
     sa.Column('recipient', sa.String(), nullable=False),
     sa.Column('delay', sa.Integer(), nullable=False),
-    sa.Column('sending_status', postgresql.ENUM('SUCCESS', 'FAILED', name='sendingstatus'), nullable=True),
+    sa.Column('sending_status', postgresql.ENUM('PENDING', 'STARTED', 'SUCCESS', 'FAILURE', 'RETRY', name='sendingstatus'), nullable=True),
+    sa.Column('task_id', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
