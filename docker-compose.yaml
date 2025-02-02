@@ -51,5 +51,32 @@ services:
     depends_on:
       - redis
 
+  celery-beat:
+    container_name: celery-beat
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+    entrypoint: celery -A src.project_celery beat -l info -s /app/src/celerybeat-schedule
+    env_file:
+      - .env
+    healthcheck:
+        test: sh -c 'celery -A your_celery_module:celery_app inspect ping'
+    depends_on:
+      - redis
+      - celery-worker
+
+  flower:
+    container_name: flower
+    image: mher/flower:latest
+    command: celery flower --broker=redis://redis:6379/0 --port=5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+
 volumes:
   db-data:

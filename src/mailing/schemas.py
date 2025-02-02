@@ -1,5 +1,8 @@
 import re
-from pydantic import BaseModel, field_validator
+
+from pydantic import BaseModel, field_validator, Field
+
+from src.mailing.constants import SendingStatus
 
 
 class NotificationIn(BaseModel):
@@ -38,6 +41,17 @@ class NotificationCreate(BaseModel):
     message: str
     recipient: str
     delay: int
+
+    class Config:
+        model_config = True
+
+
+class NotificationUpdate(BaseModel):
+    message: str | None = Field(None)
+    recipient: str | list[str] | None = Field(None)
+    delay: int | None = Field(None)
+    sending_status: SendingStatus | None = Field(None)
+    task_id: str | None = Field(None)
 
     class Config:
         model_config = True

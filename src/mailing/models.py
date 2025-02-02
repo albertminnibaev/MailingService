@@ -25,3 +25,4 @@ class Notification(Base):
             SendingStatus
         ),
     )
+    task_id = mapped_column(String)

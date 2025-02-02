@@ -1,8 +1,14 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from fastapi import status, HTTPException
 import aiohttp
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from celery.result import AsyncResult
 
 from src.config import mail_settings, telegramm_settings
+from src.mailing.crud import NotificationCRUD
+from src.mailing.models import Notification
+from src.mailing.schemas import NotificationUpdate
 
 conf = ConnectionConfig(
     MAIL_USERNAME=mail_settings.MAIL_USERNAME,
@@ -55,3 +61,14 @@ async def send_telegram_base(
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Не удалось отправить уведомление"
             ) from ex
+
+
+async def update_notifications(
+        db_session: AsyncSession,
+        notification: Notification,
+        result
+) -> None:
+    task_id = result.task_id
+    res = AsyncResult(task_id)
+    update_data = NotificationUpdate(sending_status=res.state, task_id=task_id)
+    await NotificationCRUD.update(db_session=db_session, data_id=notification.id, data=update_data)

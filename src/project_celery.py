@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from src.config import redis_settings
 
@@ -13,3 +14,9 @@ celery_app = Celery(
 )
 
 celery_app.conf.update(task_track_started=True)
+celery_app.conf.beat_schedule = {
+    "update_sending_status_for_notifications": {
+        "task": "src.tasks.update_sending_status_for_notifications",
+        "schedule": crontab(minute="*/1"),
+    },
+}
